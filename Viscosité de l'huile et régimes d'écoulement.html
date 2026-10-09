@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Viscosité de l'huile et régimes d'écoulement</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mut:#5b6577;--ac:#d9730d;--bl:#2563eb;--ok:#15803d;--wa:#b45309;--ko:#b91c1c;--bd:#dde1e8;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161d;--card:#1b212b;--tx:#e8ebf0;--mut:#9aa4b5;--ac:#f0922f;--bl:#6ea0ff;--ok:#4ade80;--wa:#fbbf24;--ko:#f87171;--bd:#2d3542}}
+:root[data-theme="dark"]{--bg:#12161d;--card:#1b212b;--tx:#e8ebf0;--mut:#9aa4b5;--ac:#f0922f;--bl:#6ea0ff;--ok:#4ade80;--wa:#fbbf24;--ko:#f87171;--bd:#2d3542}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+main{max-width:860px;margin:0 auto;padding:16px}
+h1{font-size:1.6rem;margin:.3em 0}h2{font-size:1.25rem;margin:0 0 .5em;color:var(--ac)}
+.sub{color:var(--mut);margin-top:0}
+section{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin:16px 0}
+.obj{border-left:4px solid var(--ac)}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:8px 0}
+label{display:block;font-weight:600;margin-top:8px}
+input[type=range]{width:100%;accent-color:var(--ac)}
+select,button{font:inherit;padding:6px 10px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer}
+.big{font-size:1.5rem;font-weight:700}
+.pill{display:inline-block;padding:4px 12px;border-radius:99px;font-weight:700;color:#fff}
+.lam{background:var(--ok)}.tra{background:var(--wa)}.tur{background:var(--ko)}
+canvas{width:100%;display:block;border-radius:8px;background:var(--bg);border:1px solid var(--bd)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.box{border:1px solid var(--bd);border-radius:10px;padding:10px}
+.tip{background:color-mix(in srgb,var(--bl) 12%,transparent);border-radius:8px;padding:8px 12px;margin:8px 0}
+.q{margin:12px 0}.q button{display:block;margin:4px 0;width:100%;text-align:left}
+.good{border-color:var(--ok)!important}.bad{border-color:var(--ko)!important}
+code{background:var(--bg);padding:1px 6px;border-radius:5px}
+</style>
+</head>
+<body>
+<main>
+<h1>🛢️ L'huile qui coule : viscosité et régimes d'écoulement</h1>
+<p class="sub">Terminale Bac Pro MSPC · Maintenance des systèmes de production connectés · Circuits hydrauliques et de lubrification</p>
+
+<section class="obj">
+<h2>🎯 Ce que je dois savoir faire</h2>
+Choisir l'huile adaptée à un circuit, expliquer pourquoi une huile « épaisse » ou « fluide » change le fonctionnement d'une machine, et reconnaître le type d'écoulement dans une canalisation pour comprendre les pertes de pression et l'échauffement.
+</section>
+
+<section>
+<h2>1. La viscosité, c'est quoi ?</h2>
+<p>La viscosité mesure la <b>résistance d'un liquide à s'écouler</b> : ses couches « frottent » entre elles. Le miel est très visqueux, l'eau très peu.</p>
+<div class="grid">
+<div class="box"><b>Viscosité dynamique</b> (Pa·s)<br>Force de frottement interne du fluide.</div>
+<div class="box"><b>Viscosité cinématique ν</b> (mm²/s = cSt)<br>C'est celle des fiches techniques : dynamique ÷ masse volumique.</div>
+<div class="box"><b>Indice ISO VG</b><br>VG 46 = viscosité de 46 mm²/s à <b>40 °C</b>.</div>
+</div>
+<div class="tip">💡 Le piège : <b>plus l'huile chauffe, plus elle devient fluide</b>. Une viscosité n'a de sens qu'avec sa température.</div>
+
+<h3>🌡️ Simulateur : la température change tout</h3>
+<div class="row"><label for="gr" style="margin:0">Huile :</label>
+<select id="gr"><option value="32">ISO VG 32</option><option value="46" selected>ISO VG 46</option><option value="68">ISO VG 68</option></select></div>
+<label for="tp">Température de l'huile : <b id="tpv"></b> °C</label>
+<input id="tp" type="range" min="-10" max="100" value="40">
+<div class="row"><span>Viscosité : <span class="big" id="nu"></span> mm²/s</span><span id="ver"></span></div>
+<canvas id="c1" height="150"></canvas>
+<p class="sub">La goutte descend plus vite quand l'huile est chaude (fluide) et très lentement à froid (épaisse).</p>
+<div class="grid">
+<div class="box">❄️ <b>Trop visqueuse</b> (froid) : démarrage difficile, pompe qui cavite, forte consommation d'énergie.</div>
+<div class="box">🔥 <b>Pas assez visqueuse</b> (chaud) : film d'huile trop mince, contact métal/métal, usure, fuites internes.</div>
+</div>
+</section>
+
+<section>
+<h2>2. Trois façons de couler</h2>
+<div class="grid">
+<div class="box"><span class="pill lam">Laminaire</span><br>L'huile avance en couches parallèles, sans désordre. Calme, peu de pertes, peu de bruit.</div>
+<div class="box"><span class="pill tra">Transitoire</span><br>Zone instable : par moments l'écoulement est calme, par moments il tourbillonne.</div>
+<div class="box"><span class="pill tur">Turbulent</span><br>Tourbillons dans tous les sens. Plus de frottements, d'échauffement, de bruit et de pertes de pression.</div>
+</div>
+<p>Pour savoir dans quel régime on se trouve, les techniciens calculent le <b>nombre de Reynolds</b> (sans unité) :</p>
+<p style="text-align:center" class="big">Re = (v × D) / ν</p>
+<p class="sub" style="text-align:center">v = vitesse (m/s) · D = diamètre du tuyau (mm) · ν = viscosité cinématique (mm²/s) · avec ces unités : Re = v × D × 1000 / ν</p>
+<div class="row"><span class="pill lam">Re &lt; 2 000 : laminaire</span><span class="pill tra">2 000 à 4 000 : transitoire</span><span class="pill tur">Re &gt; 4 000 : turbulent</span></div>
+</section>
+
+<section>
+<h2>3. Simulateur d'écoulement dans un tuyau</h2>
+<label for="v">Vitesse de l'huile : <b id="vv"></b> m/s</label>
+<input id="v" type="range" min="0.1" max="8" step="0.1" value="1">
+<label for="d">Diamètre du tuyau : <b id="dv"></b> mm</label>
+<input id="d" type="range" min="6" max="50" step="1" value="20">
+<label for="n">Viscosité de l'huile ν : <b id="nv"></b> mm²/s (change-la avec la température !)</label>
+<input id="n" type="range" min="5" max="400" step="1" value="46">
+<div class="row"><span class="big">Re = <span id="re"></span></span><span id="reg" class="pill"></span></div>
+<canvas id="c2" height="200"></canvas>
+<p class="sub">Le profil de vitesse (flèches) : en laminaire il est « pointu » au centre, en turbulent il est plus plat avec des tourbillons.</p>
+<div class="tip" id="cons"></div>
+<div class="row"><button id="s1">Circuit à froid (ν=300)</button><button id="s2">Circuit en température (ν=25)</button><button id="s3">Aspiration pompe, gros tuyau</button></div>
+</section>
+
+<section>
+<h2>4. Pourquoi c'est important en maintenance ?</h2>
+<div class="grid">
+<div class="box"><b>Pertes de charge</b><br>Écoulement turbulent = plus de perte de pression, donc moins de puissance disponible au récepteur.</div>
+<div class="box"><b>Échauffement</b><br>Les frottements chauffent l'huile, qui devient plus fluide et vieillit plus vite.</div>
+<div class="box"><b>Choix de l'huile</b><br>On respecte l'ISO VG du constructeur et on vérifie la plage de température de fonctionnement.</div>
+<div class="box"><b>Dimensionnement</b><br>Vitesse conseillée en aspiration faible (environ 1 m/s) pour éviter la cavitation.</div>
+</div>
+</section>
+
+<section>
+<h2>5. Je teste mes connaissances</h2>
+<div id="quiz"></div>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+const REF={32:[32,5.4],46:[46,6.8],68:[68,8.7]};
+function visc(g,tc){const [a,b]=REF[g];const W=x=>Math.log10(Math.log10(x+0.7));
+ const T1=Math.log10(313.15),T2=Math.log10(373.15);const B=(W(a)-W(b))/(T2-T1);const A=W(a)+B*T1;
+ const w=A-B*Math.log10(tc+273.15);return Math.pow(10,Math.pow(10,w))-0.7}
+let drops=[];let t0=0;
+function anim1(ts){const c=$('c1');const W=c.width=c.clientWidth;const H=c.height=150;const x=c.getContext('2d');
+ x.clearRect(0,0,W,H);const nu=visc(+$('gr').value,+$('tp').value);
+ const sp=Math.max(0.15,Math.min(8,260/nu));
+ x.fillStyle=css('--ac');
+ const dt=(ts-t0)/16||1;t0=ts;
+ drops.forEach(d=>{d.y+=sp*dt*0.6;if(d.y>H-14)d.y=10;
+  x.globalAlpha=.9;x.beginPath();x.arc(d.x*W,d.y,9,0,7);x.fill()});
+ x.globalAlpha=.25;x.fillRect(0,H-8,W,8);x.globalAlpha=1;
+ requestAnimationFrame(anim1)}
+for(let i=0;i<5;i++)drops.push({x:.1+i*.2,y:10+i*18});
+function upd1(){const tc=+$('tp').value;const nu=visc(+$('gr').value,tc);
+ $('tpv').textContent=tc;$('nu').textContent=nu<100?nu.toFixed(1):Math.round(nu);
+ $('ver').innerHTML=nu>150?'<span class="pill tur">❄️ trop épaisse</span>':nu<10?'<span class="pill tur">🔥 trop fluide</span>':'<span class="pill lam">✅ plage correcte</span>'}
+['gr','tp'].forEach(i=>$(i).addEventListener('input',upd1));upd1();requestAnimationFrame(anim1);
+
+const P=[];for(let i=0;i<70;i++)P.push({x:Math.random(),r:Math.random()*2-1,vy:0});
+function reynolds(){return +$('v').value*+$('d').value*1000/+$('n').value}
+function upd2(){$('vv').textContent=$('v').value;$('dv').textContent=$('d').value;$('nv').textContent=$('n').value;
+ const re=reynolds();$('re').textContent=Math.round(re).toLocaleString('fr-FR');
+ const g=$('reg');let m;
+ if(re<2000){g.className='pill lam';g.textContent='Laminaire';m='Écoulement calme : peu de pertes de charge, peu d\'échauffement. Idéal… mais l\'huile est peut-être trop épaisse si Re est très faible.'}
+ else if(re<=4000){g.className='pill tra';g.textContent='Transitoire';m='Zone instable : le régime change sans prévenir. On évite de dimensionner un circuit dans cette zone.'}
+ else{g.className='pill tur';g.textContent='Turbulent';m='Beaucoup de tourbillons : pertes de pression et échauffement augmentent, le circuit fait plus de bruit.'}
+ $('cons').textContent='👉 '+m}
+['v','d','n'].forEach(i=>$(i).addEventListener('input',upd2));upd2();
+function set(v,d,n){$('v').value=v;$('d').value=d;$('n').value=n;upd2()}
+$('s1').onclick=()=>set(1,20,300);$('s2').onclick=()=>set(3,20,25);$('s3').onclick=()=>set(2,40,46);
+function anim2(){const c=$('c2');const W=c.width=c.clientWidth;const H=c.height=200;const x=c.getContext('2d');
+ x.clearRect(0,0,W,H);const top=40,bot=H-40,cy=H/2,R=(bot-top)/2;
+ x.strokeStyle=css('--mut');x.lineWidth=4;x.beginPath();x.moveTo(0,top);x.lineTo(W,top);x.moveTo(0,bot);x.lineTo(W,bot);x.stroke();
+ const re=reynolds();const turb=Math.min(1,Math.max(0,(re-2000)/2000));const vel=Math.min(6,0.6+ +$('v').value*0.9);
+ const col=re<2000?css('--ok'):re<=4000?css('--wa'):css('--ko');
+ x.fillStyle=col;
+ P.forEach(p=>{
+  const prof=1-Math.pow(p.r,2)*(1-0.75*turb);
+  const noise=re<2000?0:(re<=4000?(Math.random()<.4?turb*3+1:0):turb*3+1);
+  p.vy+=(Math.random()-.5)*noise*.8;p.vy*=.85;
+  p.x+=prof*vel*0.003;p.r+=p.vy*0.02;
+  if(p.r>.95){p.r=.95;p.vy=-Math.abs(p.vy)}if(p.r<-.95){p.r=-.95;p.vy=Math.abs(p.vy)}
+  if(p.x>1){p.x=0;p.r=Math.random()*1.8-.9}
+  x.beginPath();x.arc(p.x*W,cy+p.r*R,4,0,7);x.fill()});
+ x.strokeStyle=col;x.lineWidth=2;
+ for(let k=-3;k<=3;k++){const r=k/3.4;const prof=1-r*r*(1-0.75*turb);const len=prof*70;const y=cy+r*R;
+  x.beginPath();x.moveTo(W-90,y);x.lineTo(W-90+len,y);x.stroke()}
+ requestAnimationFrame(anim2)}
+anim2();
+
+const Q=[
+["Une huile ISO VG 46 est chauffée de 40 °C à 80 °C. Que devient sa viscosité ?",["Elle augmente","Elle diminue","Elle ne change pas"],1,"Plus l'huile est chaude, plus elle est fluide."],
+["Re = 1 500 dans un tuyau. Quel régime ?",["Laminaire","Transitoire","Turbulent"],0,"Re < 2 000 : laminaire."],
+["Quel risque si l'huile est trop épaisse au démarrage à froid ?",["Film d'huile trop mince","Cavitation de la pompe et forte consommation","Aucun risque"],1,"Une huile trop visqueuse est difficile à aspirer."],
+["Le débit augmente (la vitesse double). Que fait le nombre de Reynolds ?",["Il double","Il est divisé par deux","Il ne change pas"],0,"Re = v × D / ν : proportionnel à la vitesse."]];
+const qz=$('quiz');
+Q.forEach((q,i)=>{const d=document.createElement('div');d.className='q';d.innerHTML='<b>'+(i+1)+'. '+q[0]+'</b>';
+ q[1].forEach((o,j)=>{const b=document.createElement('button');b.textContent=o;
+  b.onclick=()=>{[...d.querySelectorAll('button')].forEach(x=>x.classList.remove('good','bad'));
+   b.classList.add(j===q[2]?'good':'bad');f.textContent=j===q[2]?'✅ Bravo ! '+q[3]:'❌ Essaie encore.'};d.appendChild(b)});
+ const f=document.createElement('div');f.className='sub';d.appendChild(f);qz.appendChild(d)});
+</script>
+</body>
+</html>
